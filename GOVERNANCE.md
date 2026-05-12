@@ -1,10 +1,10 @@
 # Governance
 
-This document describes how the factory.json specification is managed and how decisions are made.
+This document describes how the Factory.md specification is managed and how decisions are made.
 
 ## Current Model: BDFL
 
-The factory.json specification is currently maintained under a **Benevolent Dictator for Life (BDFL)** model, with [Argo Trade](https://argo.trade) as the primary steward.
+The Factory.md specification is currently maintained under a **Benevolent Dictator for Life (BDFL)** model, with [Argo Trade](https://argo.trade) as the primary steward.
 
 The BDFL has final decision-making authority on:
 
@@ -57,13 +57,14 @@ Changes are batched into releases following semver (see below).
 
 ## Versioning
 
-The factory.json specification follows [Semantic Versioning 2.0.0](https://semver.org/):
+The Factory.md specification follows [Semantic Versioning 2.0.0](https://semver.org/), with a beta caveat for the pre-1.0 series:
 
 | Change Type | Version Bump | Examples |
 |-------------|-------------|----------|
-| **Patch** | 1.0.x | Typo fixes, description clarifications, documentation improvements |
-| **Minor** | 1.x.0 | New optional fields, new example files, non-breaking schema refinements |
-| **Major** | x.0.0 | Required field changes, field removals, type changes, breaking validation changes |
+| **Beta minor (`0.x`)** | 0.x.0 | While in beta, minor bumps MAY include breaking changes as the format is refined |
+| **Patch** (post-1.0) | 1.0.x | Typo fixes, description clarifications, documentation improvements |
+| **Minor** (post-1.0) | 1.x.0 | New optional fields, new example files, non-breaking schema refinements |
+| **Major** (post-1.0) | x.0.0 | Required field changes, field removals, type changes, breaking validation changes |
 
 ### Release Cadence
 

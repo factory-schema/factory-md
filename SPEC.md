@@ -1,14 +1,14 @@
-# factory.md Specification v2.0
+# Factory.md Specification v0.3
 
 ## Abstract
 
-This document defines **factory.md**, a human- and machine-readable format for describing manufacturing facilities. A factory.md file is a Markdown document with YAML frontmatter. The frontmatter contains a small set of structured fields for discovery and indexing. The Markdown body contains rich, free-form descriptions of the facility's capabilities, quality processes, engineering support, compliance posture, and other details.
+This document defines **Factory.md**, a human- and machine-readable format for describing manufacturing facilities. A factory.md file is a Markdown document with YAML frontmatter. The frontmatter contains a small set of structured fields for discovery and indexing. The Markdown body contains rich, free-form descriptions of the facility's capabilities, quality processes, engineering support, compliance posture, and other details.
 
 The format is designed to be hosted at a well-known URI, enabling automated discovery by AI agents, procurement platforms, and search engines. The Markdown body is directly consumable by large language models without parsing, while the YAML frontmatter supports programmatic filtering and search indexing.
 
 ## Status
 
-This is version **2.0** of the factory.md specification, published by Factory Schema. This is a **breaking change** from v1.x (factory.json). See [CHANGELOG.md](CHANGELOG.md) for migration details.
+This is version **0.3** of the Factory.md specification, published by Factory Schema. Factory.md is currently in **beta**: the format is implementable and stable enough for early adoption, but minor version bumps in the `0.x` series MAY introduce breaking changes as we iterate toward 1.0. See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 Additional terms:
 
 - **factory.md file**: A Markdown document with YAML frontmatter conforming to this specification.
-- **Frontmatter**: The YAML block delimited by `---` at the beginning of a factory.md file. Validated against the factory.md JSON Schema.
+- **Frontmatter**: The YAML block delimited by `---` at the beginning of a factory.md file. Validated against the Factory.md JSON Schema.
 - **Body**: The Markdown content following the frontmatter closing `---` delimiter.
 - **Publisher**: An entity that creates and hosts a factory.md file.
 - **Consumer**: A software agent, platform, or service that reads and processes a factory.md file.
@@ -71,7 +71,7 @@ A factory.md file consists of two parts:
 1. **YAML frontmatter** — a structured block delimited by `---` at the start of the file. The opening `---` MUST be the first line. The closing `---` MUST appear on its own line. The frontmatter is validated against the JSON Schema (Draft 2020-12) located at:
 
    ```
-   https://factoryschema.org/v2.0/factory.schema.json
+   https://factoryschema.org/v0.3/factory.schema.json
    ```
 
 2. **Markdown body** — free-form content following the frontmatter. The body uses standard Markdown (CommonMark) and SHOULD use the recommended sections described in [Section 5](#5-markdown-body). The body is NOT validated by the schema.
@@ -82,8 +82,10 @@ A valid factory.md file MUST include the following frontmatter fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `schema` | `string` | Schema URI for validation (MUST equal the v0.3 URI) |
 | `name` | `string` | Trade name of the factory (MUST be non-empty) |
 | `location` | `string` or `object` | Factory location |
+| `vertical` | `string` | Primary industry vertical (MUST be non-empty) |
 
 ### 3.2 Recommended Fields
 
@@ -91,12 +93,14 @@ The following frontmatter fields are RECOMMENDED:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `schema` | `string` | Schema URI for validation |
-| `vertical` | `string` | Primary industry vertical |
 | `capabilities` | `string[]` | Manufacturing processes offered |
-| `certifications` | `object[]` | Industry certifications |
+| `certifications` | `string[]` | Industry certifications |
 | `website` | `string` | Factory website URL |
 | `email` | `string` | Contact email address |
+| `updated_at` | `string` (date) | Date the profile was last updated (YYYY-MM-DD) |
+| `has_inventory` | `boolean` | True if the factory exposes inventory data |
+| `has_rfq` | `boolean` | True if the factory accepts RFQ submissions |
+| `has_agent_capabilities` | `boolean` | True if the factory publishes an A2A Agent Card or equivalent agent-callable endpoint |
 
 ### 3.3 Design Rationale
 
@@ -104,11 +108,11 @@ The frontmatter is intentionally minimal. It contains only the fields needed for
 
 ## 4. Frontmatter Fields
 
-### 4.1 `schema`
+### 4.1 `schema` (REQUIRED)
 
 - **Type**: `string` (const)
-- **Value**: MUST be `"https://factoryschema.org/v2.0/factory.schema.json"` if present.
-- **Description**: Identifies the document as a factory.md file and pins it to this schema version. RECOMMENDED.
+- **Value**: MUST be `"https://factoryschema.org/v0.3/factory.schema.json"`.
+- **Description**: Identifies the document as a factory.md file and pins it to this schema version.
 
 ### 4.2 `name` (REQUIRED)
 
@@ -133,33 +137,24 @@ The frontmatter is intentionally minimal. It contains only the fields needed for
 | `timezone` | `string` | No | IANA timezone identifier (e.g. `"Asia/Shanghai"`) |
 | `coordinates` | `object` | No | `{ "lat": number, "lng": number }` — WGS 84 |
 
-### 4.4 `vertical`
+### 4.4 `vertical` (REQUIRED)
 
-- **Type**: `string`
-- **Description**: Primary industry vertical. Free-form, e.g. `"machining"`, `"pcb"`, `"textiles"`, `"injection-molding"`. See [Appendix A](#appendix-a-common-values-non-normative) for common values. RECOMMENDED.
+- **Type**: `string` (minLength: 1)
+- **Description**: Primary industry vertical. Free-form, e.g. `"machining"`, `"pcb"`, `"textiles"`, `"sheet-metal"`, `"injection-molding"`. See [Appendix A](#appendix-a-common-values-non-normative) for common values.
 
 ### 4.5 `capabilities`
 
 - **Type**: `array` of `string` (minItems: 1)
 - **Description**: Manufacturing processes offered, as free-form strings. See [Appendix A](#appendix-a-common-values-non-normative) for common values. RECOMMENDED.
 
-This field is a flat list of process names for indexing and search. Detailed capability descriptions (materials, equipment, tolerances, finishes) belong in the Markdown body's [Capabilities](#51-capabilities) section.
+This field is a flat list of process names for indexing and search. Detailed capability descriptions (materials, equipment, tolerances, finishes) belong in the Markdown body's [Capabilities](#52-capabilities-recommended) section.
 
 ### 4.6 `certifications`
 
-- **Type**: `array` of `object`
-- **Description**: Industry certifications and compliance credentials. RECOMMENDED.
+- **Type**: `array` of `string`
+- **Description**: Industry certifications and compliance credentials, as free-form strings (e.g. `"ISO 9001:2015"`, `"GOTS"`, `"UL Listed"`). RECOMMENDED.
 
-Each certification object:
-
-| Sub-field | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `type` | `string` | Yes | Certification name (e.g. `"ISO 9001:2015"`, `"GOTS"`, `"UL Listed"`) |
-| `body` | `string` | No | Issuing or certifying body |
-| `id` | `string` | No | Certificate ID or number |
-| `issued` | `string` | No | Date issued (format: `YYYY-MM-DD`) |
-| `expires` | `string` | No | Expiry date (format: `YYYY-MM-DD`) |
-| `url` | `string` | No | Link to certificate or verification page (format: URI) |
+This field is a flat list of certification names for indexing and search. Additional detail (issuing body, certificate ID, issue/expiry dates, verification URL) belongs in the Markdown body's [Certifications & Compliance](#55-certifications--compliance-recommended) section.
 
 ### 4.7 `website`
 
@@ -171,125 +166,199 @@ Each certification object:
 - **Type**: `string`
 - **Description**: Contact email address. RECOMMENDED.
 
-### 4.9 Additional Properties
+### 4.9 `updated_at`
+
+- **Type**: `string` (format: date, `YYYY-MM-DD`)
+- **Description**: Date the profile was last updated. RECOMMENDED — helps consumers detect stale data and prioritize re-fetching.
+
+### 4.10 `has_inventory`
+
+- **Type**: `boolean`
+- **Description**: Indicates whether the factory exposes inventory data (e.g. on-hand stock, available materials). When `true`, publishers SHOULD describe the inventory feed in the Markdown body. RECOMMENDED.
+
+### 4.11 `has_rfq`
+
+- **Type**: `boolean`
+- **Description**: Indicates whether the factory accepts RFQ (Request for Quote) submissions. When `true`, publishers SHOULD include an RFQ Requirements section in the Markdown body with the submission endpoint and any required fields/files. RECOMMENDED.
+
+### 4.12 `has_agent_capabilities`
+
+- **Type**: `boolean`
+- **Description**: Indicates whether the factory publishes an A2A Agent Card or equivalent agent-callable endpoint. When `true`, publishers SHOULD link to the Agent Card from the Markdown body and follow the A2A guidance in [Section 10](#10-a2a-interoperability). RECOMMENDED.
+
+### 4.13 Additional Properties
 
 The frontmatter schema sets `additionalProperties: false`. Fields not listed above MUST NOT appear in the frontmatter. All other information belongs in the Markdown body.
 
 ## 5. Markdown Body
 
-The Markdown body SHOULD contain the following sections. These sections are RECOMMENDED but not validated by the schema. Publishers MAY include additional sections, omit sections, or reorder them. The section headings below are conventions — publishers MAY use alternative headings that convey the same meaning.
+The Markdown body MAY contain any of the following sections. These sections are all OPTIONAL and RECOMMENDED — none are validated by the schema. Publishers MAY include additional sections, omit any, or reorder them. The section headings below are conventions; publishers MAY use alternative headings that convey the same meaning.
 
-Publishers SHOULD NOT omit the Capabilities section, as it is the primary source of detailed manufacturing information for consumers.
+The factory's name SHOULD be the H1 (`#`) at the top of the body. Each recommended section below uses an H2 (`##`).
 
-### 5.1 Capabilities (RECOMMENDED)
+### 5.1 Summary (RECOMMENDED)
 
-Publishers SHOULD include a Capabilities section describing:
+A short paragraph (1–3 sentences) describing what the factory does, who it serves, and any distinguishing positioning (e.g. precision tier, geography, supply-vs-fabrication model). Consumers and LLMs use this as the headline answer to "what is this factory?"
 
-- **Processes** — detailed descriptions of manufacturing processes offered
-- **Materials** — materials the factory can work with
-- **Finishes** — surface finishes and post-processing available
-- **Equipment** — major equipment with model names, counts, and key specifications (tables are RECOMMENDED)
-- **Secondary services** — additional services beyond primary manufacturing (e.g. assembly, heat treatment, packaging)
-- **Tolerances** — standard and precision tolerances, by process if applicable, surface finish capabilities
-- **Constraints** — MOQ, lead times, capacity, max dimensions, max weight, min order value
+### 5.2 Capabilities (RECOMMENDED)
 
-Vertical-specific data (e.g. max layers for PCB, GSM range for textiles) SHOULD be included in this section rather than in a separate section.
+Detailed descriptions of manufacturing processes offered, including:
 
-### 5.2 Certifications (RECOMMENDED)
+- Process narratives (what each capability listed in the frontmatter actually involves)
+- Finishes and post-processing
+- Secondary services (assembly, heat treatment, packaging, kitting)
+- Tolerances, by process if applicable
+- Capacity and MOQ guidance
+- Vertical-specific specs (e.g. max PCB layers, GSM range for textiles)
 
-If certifications are listed in the frontmatter, publishers MAY include a Certifications section in the body with additional detail (e.g. scope, verification links, compliance notes). If certifications are NOT in the frontmatter, publishers SHOULD describe them in this body section.
+Engineering services that don't fit elsewhere — accepted file formats, DFM review, prototyping, CAD/CAM tooling — SHOULD also go here.
 
-### 5.3 Quality (RECOMMENDED)
+### 5.3 Inventory (RECOMMENDED if `has_inventory` is `true`)
 
-Publishers SHOULD include a Quality section describing:
+When `has_inventory: true` in the frontmatter, publishers SHOULD describe:
 
-- QC process and workflow
-- Testing methods and equipment
-- Inspection equipment (tables are RECOMMENDED)
-- Documentation provided with shipments
-- Defect rates
-- Material and process traceability
+- What is stocked (materials, sizes, grades)
+- How inventory is exposed (live feed URL, CSV/JSON endpoint, contact for stock check)
+- Update cadence and freshness guarantees
 
-### 5.4 Engineering (RECOMMENDED)
+Publishers MAY omit this section if `has_inventory: false`.
 
-Publishers SHOULD include an Engineering section describing:
+### 5.4 RFQ (RECOMMENDED if `has_rfq` is `true`)
 
-- Accepted file formats
-- DFM (Design for Manufacturing) review availability
-- Prototyping and sample run capability
-- Reverse engineering capability
-- CAD/CAM software used in-house
-- Co-design or product development services
+When `has_rfq: true` in the frontmatter, publishers SHOULD describe:
 
-### 5.5 Shipping & Logistics (OPTIONAL)
+- RFQ submission endpoint (URL or email)
+- Required fields and files (CAD formats, drawings, specs)
+- Accepted part/product types
+- NDA requirements before submission
+- Auto-quote availability and typical response time
+- Special instructions or caveats
 
-Publishers MAY include a Shipping & Logistics section describing:
+### 5.5 Certifications & Compliance (RECOMMENDED)
 
-- Supported Incoterms
-- Shipping methods
-- Markets served (countries/regions)
-- Packaging capabilities
-- Payment terms, methods, and accepted currencies
+Additional detail for each certification listed in the frontmatter — scope, issuing body, certificate ID, issue/expiry dates, verification URL. Plus broader compliance posture:
 
-### 5.6 Compliance (RECOMMENDED for regulated industries)
-
-Publishers SHOULD include a Compliance section if the factory operates in regulated industries. This section SHOULD cover:
-
-- IP protection measures (NDA policies, access controls, audit logging)
+- IP protection (NDA policies, access controls, audit logging)
 - Export controls (ITAR, EAR, or other regimes)
 - Environmental practices and certifications
 - Social and labor compliance
 
-### 5.7 RFQ Requirements (OPTIONAL)
+### 5.6 Quality (RECOMMENDED)
 
-Publishers MAY include an RFQ Requirements section describing:
+- QC process and workflow
+- Testing methods and equipment
+- Inspection equipment (tables are RECOMMENDED)
+- Documentation provided with shipments (CoCs, FAI reports, traceability records)
+- Defect rates
+- Material and process traceability
 
-- RFQ submission endpoint URI
-- MCP and A2A endpoint URIs
-- Required fields and files for RFQ submission
-- Accepted part/product types
-- NDA requirements
-- Auto-quote availability
-- Special instructions or caveats
+### 5.7 Materials (RECOMMENDED)
 
-### 5.8 About (OPTIONAL)
+Materials the factory can work with, organized by family if helpful (metals, plastics, composites, textiles). Include grades, standards, and any sourcing notes.
 
-Publishers MAY include an About section with:
+### 5.8 Equipment (RECOMMENDED)
+
+Major equipment with model names, counts, and key specifications. Tables are RECOMMENDED:
+
+```markdown
+| Equipment | Type | Count | Key Specs |
+|-----------|------|-------|-----------|
+| DMG Mori DMU 50 | 5-axis CNC mill | 4 | 500×450×400 mm, 20k RPM |
+```
+
+### 5.9 Lead Times (RECOMMENDED)
+
+Typical lead times broken down by order type (sample, prototype, production), with expedite options if available. State the units explicitly (calendar days vs business days).
+
+### 5.10 Shipping and Logistics (OPTIONAL)
+
+- Supported Incoterms
+- Shipping methods and carriers
+- Markets served (countries/regions)
+- Packaging capabilities
+- Payment terms, methods, and accepted currencies
+
+### 5.11 Agent Access (RECOMMENDED if `has_agent_capabilities` is `true`)
+
+When `has_agent_capabilities: true` in the frontmatter, publishers SHOULD describe how agents can interact with the factory. The Agent Access section is the **authoritative source** for the factory's agent skills — an A2A Agent Card, if published, is one optional surface for the same skills, not a replacement.
+
+A typical Agent Access section contains:
+
+- Public endpoints (MCP server URI, A2A Agent Card URI if available)
+- A2A extension URI: `https://factoryschema.org/a2a-extension/v1`
+- Authentication or NDA preconditions
+- One H3 sub-section per skill the factory exposes
+
+#### Skill sub-sections
+
+Each agent skill SHOULD be a level-3 heading (`### Skill Name`) followed by a one-paragraph description and a bullet list of structured fields. The following fields are RECOMMENDED:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `Skill ID` | Yes | Stable, kebab-case identifier (e.g. `submit-rfq`). Used by agents to invoke the skill. |
+| `Input` | Yes | What the skill accepts — free-form, but MIME types are RECOMMENDED for file artifacts (e.g. `model/step`, `application/pdf`). |
+| `Output` | Yes | What the skill returns. |
+| `Endpoint` | Recommended | HTTP method + URI, or a reference to the MCP/A2A endpoint above if the skill is invoked through it. |
+| `Auth` | Recommended | Authentication or NDA requirements. `open` means no auth. |
+| `Example` | Optional | A short natural-language prompt or sample request that illustrates the skill in use. |
+
+Publishers MAY add additional fields (e.g. `Rate limit`, `Async`, `Webhook`) as needed.
+
+#### Worked example
+
+```markdown
+### Check Stock
+
+Look up real-time on-hand inventory for a specific material grade and form
+factor. Returns the current quantity, warehouse, and the timestamp the
+inventory snapshot was last refreshed. Backed by the factory's internal ERP —
+numbers are authoritative, not estimates.
+
+- **Skill ID:** `check-stock`
+- **Input:** `application/json` — `{ "material": "Al 6061-T6", "form": "sheet", "thickness_mm": 3.0, "min_quantity": 10 }`
+- **Output:** `application/json` — `{ "on_hand_units": 142, "uom": "sheets (4x8 ft)", "warehouse": "Chicago, IL", "updated_at": "2026-05-12T08:00:00-05:00", "lead_time_if_oos_days": 7 }`
+- **Endpoint:** `POST https://example.com/agent/inventory/check`
+- **Auth:** API key, issued after NDA. Rate-limited to 60 requests/minute.
+- **Example:** "Do you have at least 100 sheets of 3 mm 6061-T6 aluminum in stock today?"
+```
+
+See [Section 10](#10-a2a-interoperability) for the A2A interoperability model and how these skills map to A2A `AgentSkill` objects when an Agent Card is published.
+
+### 5.12 Contacts (OPTIONAL)
+
+Human contact points beyond the top-level `email` and `website` frontmatter:
+
+- Sales / RFQ contact
+- Engineering / DFM contact
+- Quality / NCR contact
+- Business hours and response time
+
+### 5.13 About (OPTIONAL)
 
 - Legal name
 - Industries served
 - Founded year
 - Employee count
 - Languages spoken
-- Business hours and timezone
-- RFQ response time
+- Ownership / certifications-of-origin where relevant
 
 ## 6. Media Type
 
 A factory.md file MUST be served with the media type `text/markdown; charset=utf-8`, per [RFC 7763](https://www.rfc-editor.org/rfc/rfc7763).
 
-Consumers SHOULD identify factory.md files by the presence of YAML frontmatter containing a `name` field and a `location` field, or by the `schema` field with the value `"https://factoryschema.org/v2.0/factory.schema.json"`.
+Consumers SHOULD identify factory.md files by the presence of YAML frontmatter containing a `name` field and a `location` field, or by the `schema` field with the value `"https://factoryschema.org/v0.3/factory.schema.json"`.
 
 ## 7. Versioning Policy
 
-The factory.md specification follows [Semantic Versioning 2.0.0](https://semver.org/):
+The Factory.md specification follows [Semantic Versioning 2.0.0](https://semver.org/), with the following caveat for the pre-1.0 beta period:
 
-- **Patch** (e.g. 2.0.1): Clarifications, typo fixes, and documentation improvements. No schema changes.
-- **Minor** (e.g. 2.1.0): New optional frontmatter fields added, or new recommended body sections. Existing valid documents remain valid.
-- **Major** (e.g. 3.0.0): Breaking changes. Previously valid documents MAY become invalid.
+- **Beta (`0.x`)**: Factory.md is currently in beta. Minor version bumps in the `0.x` series (e.g. 0.3 → 0.4) MAY include breaking changes as the format is refined. Patch bumps (e.g. 0.3.0 → 0.3.1) will not.
+- **Stable (`1.0`+)**: Once Factory.md reaches 1.0, standard SemVer applies:
+  - **Patch** (e.g. 1.0.1): Clarifications, typo fixes, documentation improvements. No schema changes.
+  - **Minor** (e.g. 1.1.0): New optional frontmatter fields or new recommended body sections. Existing valid documents remain valid.
+  - **Major** (e.g. 2.0.0): Breaking changes. Previously valid documents MAY become invalid.
 
-### 7.1 Migration from v1.x
-
-Version 2.0 is a breaking change from v1.x (factory.json):
-
-- The file format changed from JSON to Markdown with YAML frontmatter.
-- The well-known URI changed from `/.well-known/factory.json` to `/.well-known/factory.md`.
-- The Content-Type changed from `application/json` to `text/markdown; charset=utf-8`.
-- The `$schema` field was replaced by `schema` (no dollar prefix).
-- Most fields moved from the validated schema to the unvalidated Markdown body.
-- The frontmatter retains only: `schema`, `name`, `location`, `vertical`, `capabilities`, `certifications`, `website`, `email`.
-
-During a transition period, publishers MAY serve both `/.well-known/factory.json` (v1.x) and `/.well-known/factory.md` (v2.0). If both exist, consumers SHOULD prefer `factory.md`.
+Publishers SHOULD pin the `schema` field to a specific version URI so consumers can detect format changes deterministically.
 
 ## 8. Security Considerations
 
@@ -328,30 +397,38 @@ Consumers MUST use a safe YAML parser that does not execute arbitrary code. Publ
 
 ```markdown
 ---
-name: "My Factory"
-location: "Shenzhen, CN"
+schema: "https://factoryschema.org/v0.3/factory.schema.json"
+name: "Midwest Sheet Metal Supply"
+location: "Chicago, IL, US"
+vertical: sheet-metal
 ---
 
-# My Factory
+# Midwest Sheet Metal Supply
 
-CNC milling and turning shop serving the electronics industry.
+Sheet metal supply and cut-to-size service for fabricators across the Midwest.
 ```
 
 ### 9.2 Recommended
 
 ```yaml
 ---
-schema: "https://factoryschema.org/v2.0/factory.schema.json"
-name: "My Factory"
-location: "Shenzhen, CN"
-vertical: machining
+schema: "https://factoryschema.org/v0.3/factory.schema.json"
+name: "Midwest Sheet Metal Supply"
+location: "Chicago, IL, US"
+vertical: sheet-metal
 capabilities:
-  - CNC milling
-  - CNC turning
+  - Sheet metal supply
+  - Cut-to-size blanks
+  - Shearing
+  - Slitting
 certifications:
-  - type: "ISO 9001:2015"
-website: "https://myfactory.example.com"
-email: sales@myfactory.example.com
+  - ISO 9001:2015
+website: "https://midwestsheet.example.com"
+email: sales@midwestsheet.example.com
+updated_at: "2026-05-12"
+has_inventory: true
+has_rfq: true
+has_agent_capabilities: true
 ---
 ```
 
@@ -496,7 +573,7 @@ This appendix lists commonly used values for frontmatter fields. These values ar
 
 **PCB**: `multilayer PCB fabrication`, `HDI`, `flex-rigid PCB`, `impedance control`, `blind/buried vias`, `heavy copper`, `RF/microwave PCB`
 
-**Sheet Metal**: `laser cutting`, `CNC punching`, `press brake forming`, `welding (TIG/MIG)`, `spot welding`, `powder coating`, `sheet metal assembly`
+**Sheet Metal**: `sheet metal supply`, `cut-to-size blanks`, `shearing`, `slitting`, `laser cutting`, `CNC punching`, `press brake forming`, `welding (TIG/MIG)`, `spot welding`, `powder coating`, `sheet metal assembly`
 
 **Injection Molding**: `injection molding`, `overmolding`, `insert molding`, `blow molding`, `rotational molding`, `thermoforming`
 

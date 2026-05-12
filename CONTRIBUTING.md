@@ -1,6 +1,6 @@
-# Contributing to factory.md
+# Contributing to Factory.md
 
-Thank you for your interest in contributing to the factory.md specification. This document explains how to propose changes, report issues, and submit pull requests.
+Thank you for your interest in contributing to the Factory.md specification. This document explains how to propose changes, report issues, and submit pull requests.
 
 ## How to Propose a Change
 
@@ -37,7 +37,7 @@ After the discussion period, a maintainer will either:
 
 Accepted proposals are implemented via pull request:
 
-1. Update the JSON Schema (`schema/v2.0/factory.schema.json`) if the change affects frontmatter fields
+1. Update the JSON Schema (`schema/v0.3/factory.schema.json`) if the change affects frontmatter fields
 2. Update SPEC.md with the field reference or body section guidance
 3. Update at least one example `.md` file to demonstrate the change
 4. Add a CHANGELOG.md entry

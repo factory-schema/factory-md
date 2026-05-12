@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://factoryschema.org/v2.0/factory.schema.json",
-  "title": "factory.md frontmatter",
+  "$id": "https://factoryschema.org/v0.3/factory.schema.json",
+  "title": "Factory.md frontmatter",
   "description": "Validates the YAML frontmatter of a factory.md file — a machine-readable manufacturing facility profile.",
   "type": "object",
-  "required": ["name", "location"],
+  "required": ["schema", "name", "location", "vertical"],
 
   "properties": {
     "schema": {
       "type": "string",
-      "const": "https://factoryschema.org/v2.0/factory.schema.json",
+      "const": "https://factoryschema.org/v0.3/factory.schema.json",
       "description": "Must reference this schema."
     },
     "name": {
@@ -18,7 +18,7 @@
       "description": "Trade name of the factory."
     },
     "location": {
-      "description": "Factory location as a string (\"City, CC\") or a structured object.",
+      "description": "Factory location as a string (\"City, Region, CC\") or a structured object.",
       "oneOf": [
         {
           "type": "string",
@@ -56,7 +56,8 @@
     },
     "vertical": {
       "type": "string",
-      "description": "Primary industry vertical (free-form, e.g. \"machining\", \"pcb\", \"textiles\")."
+      "minLength": 1,
+      "description": "Primary industry vertical (free-form, e.g. \"machining\", \"pcb\", \"textiles\", \"sheet-metal\")."
     },
     "capabilities": {
       "type": "array",
@@ -67,7 +68,7 @@
     "certifications": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Industry certifications and compliance credentials."
+      "description": "Industry certifications and compliance credentials (e.g. \"ISO 9001:2015\")."
     },
     "website": {
       "type": "string",
@@ -77,6 +78,23 @@
     "email": {
       "type": "string",
       "description": "Contact email address."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the profile was last updated (YYYY-MM-DD)."
+    },
+    "has_inventory": {
+      "type": "boolean",
+      "description": "True if the factory exposes inventory data (e.g. stock, on-hand materials)."
+    },
+    "has_rfq": {
+      "type": "boolean",
+      "description": "True if the factory accepts RFQ (Request for Quote) submissions."
+    },
+    "has_agent_capabilities": {
+      "type": "boolean",
+      "description": "True if the factory publishes an A2A Agent Card or equivalent agent-callable endpoint."
     }
   },
 

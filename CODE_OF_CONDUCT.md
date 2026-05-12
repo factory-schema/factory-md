@@ -2,7 +2,7 @@
 
 This project adopts the **Contributor Covenant v2.1** as its code of conduct.
 
-All participants in the factory.json community are expected to treat each other with respect and professionalism.
+All participants in the Factory.md community are expected to treat each other with respect and professionalism.
 
 ## Full Text
 
