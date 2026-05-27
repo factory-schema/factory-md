@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://factoryschema.org/v0.3/factory.schema.json",
+  "$id": "https://factoryschema.org/v0.4/factory.schema.json",
   "title": "Factory.md frontmatter",
-  "description": "Validates the YAML frontmatter of a factory.md file — a machine-readable manufacturing facility profile.",
+  "description": "Validates the YAML frontmatter of a factory.md file - a machine-readable manufacturing facility profile.",
   "type": "object",
   "required": ["schema", "name", "location", "vertical"],
 
   "properties": {
     "schema": {
       "type": "string",
-      "const": "https://factoryschema.org/v0.3/factory.schema.json",
+      "const": "https://factoryschema.org/v0.4/factory.schema.json",
       "description": "Must reference this schema."
     },
     "name": {
@@ -92,9 +92,43 @@
       "type": "boolean",
       "description": "True if the factory accepts RFQ (Request for Quote) submissions."
     },
-    "has_agent_capabilities": {
-      "type": "boolean",
-      "description": "True if the factory publishes an agent-callable endpoint."
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Agent-callable skills exposed by the factory.",
+      "items": {
+        "type": "object",
+        "required": ["id", "endpoint", "auth"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "Stable kebab-case skill identifier."
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS endpoint agents can call for this skill."
+          },
+          "auth": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Authentication method for the skill endpoint, e.g. open, api_key, oauth2, mtls, nda."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional short description of what the skill does."
+          },
+          "docs": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "Optional documentation URL for the skill."
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
 

@@ -37,7 +37,7 @@ After the discussion period, a maintainer will either:
 
 Accepted proposals are implemented via pull request:
 
-1. Update the JSON Schema (`schema/v0.3/factory.schema.json`) if the change affects frontmatter fields
+1. Update the current JSON Schema (`schema/v0.4/factory.schema.json`) if the change affects frontmatter fields
 2. Update SPEC.md with the field reference or body section guidance
 3. Update at least one example `.md` file to demonstrate the change
 4. Add a CHANGELOG.md entry

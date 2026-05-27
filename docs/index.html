@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Factory.md — Open Standard for Machine-Readable Manufacturing</title>
-  <meta name="description" content="Factory.md is an open standard (v0.3, beta) that makes manufacturing facilities machine-readable. A Markdown file with YAML frontmatter describes capabilities, certifications, and endpoints — readable by humans, AI agents, and platforms alike.">
+  <meta name="description" content="Factory.md is an open standard (v0.4, beta) that makes manufacturing facilities machine-readable. A Markdown file with YAML frontmatter describes capabilities, certifications, and callable skills — readable by humans, AI agents, and platforms alike.">
   <link rel="canonical" href="https://factoryjson.org">
 
   <!-- Open Graph -->
@@ -53,7 +53,7 @@
         <a href="#schema">Schema</a>
         <a href="#examples">Examples</a>
         <a href="#spec">Spec</a>
-        <a href="#a2a">A2A</a>
+        <a href="#skills">Skills</a>
         <a href="#adopt">Adopt</a>
         <a href="https://github.com/factory-md/factory-md" target="_blank" rel="noopener">GitHub &#8599;</a>
       </div>
@@ -65,7 +65,7 @@
     <div class="container">
       <h1>Factory<span class="accent">.md</span></h1>
       <p class="hero-tagline">Make your factory machine-readable</p>
-      <span class="badge">v0.3 · beta</span>
+      <span class="badge">v0.4 · beta</span>
       <div class="hero-cta">
         <a href="#spec" class="btn btn-primary">Read the Spec</a>
         <a href="https://github.com/factory-md/factory-md" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
@@ -82,7 +82,7 @@
         <div class="step">
           <span class="step-num">1</span>
           <h3>Create</h3>
-          <p>Create a <code>factory.md</code> file with 2 required frontmatter fields</p>
+          <p>Create a <code>factory.md</code> file with 4 required frontmatter fields</p>
         </div>
         <div class="step">
           <span class="step-num">2</span>
@@ -92,7 +92,7 @@
         <div class="step">
           <span class="step-num">3</span>
           <h3>Validate</h3>
-          <p>Validate frontmatter against the <a href="https://github.com/factory-md/factory-md/blob/main/schema/v0.3/factory.schema.json" target="_blank" rel="noopener">JSON Schema</a></p>
+          <p>Validate frontmatter against the <a href="https://github.com/factory-md/factory-md/blob/main/schema/v0.4/factory.schema.json" target="_blank" rel="noopener">JSON Schema</a></p>
         </div>
         <div class="step">
           <span class="step-num">4</span>
@@ -106,7 +106,7 @@
           <button class="copy-btn" data-target="minimal-example" aria-label="Copy to clipboard">Copy</button>
         </div>
         <pre id="minimal-example"><code class="language-yaml">---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Midwest Sheet Metal Supply"
 location: "Chicago, IL, US"
 vertical: sheet-metal
@@ -122,7 +122,12 @@ email: sales@midwestsheet.example.com
 updated_at: "2026-05-12"
 has_inventory: true
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: order-status
+    endpoint: https://acme.com/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://skills.argotrade.io/order-status
 ---
 
 # Midwest Sheet Metal Supply
@@ -195,7 +200,7 @@ Mill test reports on every coil. ISO 9001:2015 certified.</code></pre>
               <li><code>updated_at</code> — Date the profile was last updated (YYYY-MM-DD)</li>
               <li><code>has_inventory</code> — Boolean: exposes inventory data</li>
               <li><code>has_rfq</code> — Boolean: accepts RFQ submissions</li>
-              <li><code>has_agent_capabilities</code> — Boolean: publishes an A2A Agent Card</li>
+              <li><code>skills</code> — Array of callable skill endpoints</li>
             </ul>
             <p class="schema-note">Four required fields: <code>schema</code>, <code>name</code>, <code>location</code>, <code>vertical</code>. All other frontmatter fields are recommended.</p>
           </div>
@@ -218,7 +223,7 @@ Mill test reports on every coil. ISO 9001:2015 certified.</code></pre>
               <li><strong>Equipment</strong> — Major equipment with model, count, key specs (tables recommended)</li>
               <li><strong>Lead Times</strong> — By order type (sample, prototype, production), with expedite options</li>
               <li><strong>Shipping and Logistics</strong> — Incoterms, methods, markets, packaging, payment</li>
-              <li><strong>Agent Access</strong> — A2A Agent Card URI, MCP endpoint, skills (if <code>has_agent_capabilities: true</code>)</li>
+              <li><strong>Agent Access</strong> — Skill inputs, outputs, auth, docs, and operational details (if <code>skills</code> is present)</li>
               <li><strong>Contacts</strong> — Sales, engineering, quality contacts; business hours</li>
               <li><strong>About</strong> — Legal name, industries served, founded year, employees, languages</li>
             </ul>
@@ -278,7 +283,7 @@ Mill test reports on every coil. ISO 9001:2015 certified.</code></pre>
               <button class="copy-btn" data-target="example-machine-shop" aria-label="Copy to clipboard">Copy</button>
             </div>
             <pre id="example-machine-shop"><code class="language-yaml">---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Precision Works Manufacturing Co."
 location:
   city: Shenzhen
@@ -304,7 +309,17 @@ email: sales@precisionworks.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: submit-rfq
+    endpoint: https://precisionworks.argo.trade/agent/rfq
+    auth: nda
+    description: Submit a Request for Quote for CNC-machined parts.
+    docs: https://precisionworks.argo.trade/docs/submit-rfq
+  - id: quote-status
+    endpoint: https://precisionworks.argo.trade/agent/quote-status
+    auth: open
+    description: Look up the status and quoted price of a previously submitted RFQ.
+    docs: https://precisionworks.argo.trade/docs/quote-status
 ---
 
 # Precision Works Manufacturing Co.
@@ -353,7 +368,7 @@ Defect rate: 800 PPM.
               <button class="copy-btn" data-target="example-pcb-fab" aria-label="Copy to clipboard">Copy</button>
             </div>
             <pre id="example-pcb-fab"><code class="language-yaml">---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "TaiPCB Technology Co., Ltd."
 location:
   city: Taoyuan
@@ -377,7 +392,17 @@ email: rfq@taipcb.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: rfq-intake
+    endpoint: https://taipcb.argo.trade/skills/rfq-intake
+    auth: nda
+    description: Submit Gerbers, drill files, quantities, and board requirements for quoting.
+    docs: https://taipcb.argo.trade/docs/rfq-intake
+  - id: order-status
+    endpoint: https://taipcb.argo.trade/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://taipcb.argo.trade/docs/order-status
 ---
 
 # TaiPCB Technology Co., Ltd.
@@ -420,7 +445,7 @@ Defect rate: 500 PPM.</code></pre>
               <button class="copy-btn" data-target="example-textile" aria-label="Copy to clipboard">Copy</button>
             </div>
             <pre id="example-textile"><code class="language-yaml">---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Sunrise Textiles Pvt. Ltd."
 location:
   city: Tirupur
@@ -446,7 +471,17 @@ email: orders@sunrisetextiles.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: rfq-intake
+    endpoint: https://sunrise.argo.trade/skills/rfq-intake
+    auth: nda
+    description: Submit garment tech packs, artwork, quantities, and delivery requirements for quoting.
+    docs: https://sunrise.argo.trade/docs/rfq-intake
+  - id: sample-status
+    endpoint: https://sunrise.argo.trade/skills/sample-status
+    auth: oauth2
+    description: Track sample room status and expected completion date.
+    docs: https://sunrise.argo.trade/docs/sample-status
 ---
 
 # Sunrise Textiles Pvt. Ltd.
@@ -516,8 +551,10 @@ solar-powered knitting unit.
               <tr><th>Field</th><th>Type</th><th>Description</th></tr>
             </thead>
             <tbody>
+              <tr><td><code>schema</code></td><td><code>string</code></td><td>Schema URI for validation</td></tr>
               <tr><td><code>name</code></td><td><code>string</code></td><td>Trade name of the factory (non-empty)</td></tr>
               <tr><td><code>location</code></td><td><code>string</code> | <code>object</code></td><td>Factory location — string shorthand or structured object with city, country, coordinates</td></tr>
+              <tr><td><code>vertical</code></td><td><code>string</code></td><td>Industry vertical (e.g. "machining", "pcb", "textiles")</td></tr>
             </tbody>
           </table>
         </div>
@@ -528,12 +565,11 @@ solar-powered knitting unit.
               <tr><th>Field</th><th>Type</th><th>Description</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>schema</code></td><td><code>string</code></td><td>Schema URI for validation</td></tr>
-              <tr><td><code>vertical</code></td><td><code>string</code></td><td>Industry vertical (e.g. "machining", "pcb", "textiles")</td></tr>
               <tr><td><code>capabilities</code></td><td><code>string[]</code></td><td>Manufacturing processes offered (free-form strings)</td></tr>
-              <tr><td><code>certifications</code></td><td><code>object[]</code></td><td>Industry certifications (at minimum <code>type</code> required per object)</td></tr>
+              <tr><td><code>certifications</code></td><td><code>string[]</code></td><td>Industry certifications</td></tr>
               <tr><td><code>website</code></td><td><code>string</code></td><td>Factory website URL</td></tr>
               <tr><td><code>email</code></td><td><code>string</code></td><td>Contact email address</td></tr>
+              <tr><td><code>skills</code></td><td><code>object[]</code></td><td>Callable skill endpoints with <code>id</code>, <code>endpoint</code>, and <code>auth</code></td></tr>
             </tbody>
           </table>
         </div>
@@ -543,7 +579,7 @@ solar-powered knitting unit.
         <h3>Two-Layer Architecture</h3>
         <p>Factory.md separates <strong>structured data</strong> (YAML frontmatter) from <strong>rich descriptions</strong> (Markdown body):</p>
         <ul>
-          <li><strong>Frontmatter</strong> — validated against JSON Schema. Used for programmatic search, filtering, and indexing. Intentionally minimal.</li>
+          <li><strong>Frontmatter</strong> — validated against JSON Schema. Used for programmatic search, filtering, indexing, and skill discovery.</li>
           <li><strong>Body</strong> — free-form Markdown. Readable by humans and LLMs. Contains detailed capabilities, quality processes, equipment tables, compliance narratives, and anything else the factory wants to share.</li>
         </ul>
       </div>
@@ -563,123 +599,68 @@ solar-powered knitting unit.
     </div>
   </section>
 
-  <!-- A2A Interoperability -->
-  <section class="section" id="a2a">
+  <!-- Skills -->
+  <section class="section" id="skills">
     <div class="container">
-      <h2>A2A Interoperability</h2>
-      <p class="section-intro">Factory.md integrates with the <a href="https://a2a-protocol.org" target="_blank" rel="noopener">A2A (Agent-to-Agent) protocol</a> as a protocol extension — making factories discoverable through the A2A ecosystem.</p>
+      <h2>Callable Skills</h2>
+      <p class="section-intro">Factory.md v0.4 puts machine-callable factory workflows directly in YAML frontmatter, so agents can discover the right endpoint without depending on a separate card format.</p>
 
       <div class="spec-block">
-        <h3>How It Works</h3>
-        <p>The A2A Agent Card is a <strong>lean interaction layer</strong> — just enough for agents to discover and talk to your factory. The factory.md file remains the <strong>rich data layer</strong> with full manufacturing detail. The Agent Card links to factory.md via a URI reference.</p>
+        <h3>Recommended Schema</h3>
+        <p>Each skill has a stable ID, a callable endpoint, and an auth mode. Descriptions and docs URLs are optional but recommended for human review and implementation detail.</p>
 
         <div class="code-block">
           <div class="code-header">
-            <span>agent-card.json — lean entry point</span>
-            <button class="copy-btn" data-target="a2a-agent-card" aria-label="Copy to clipboard">Copy</button>
+            <span>factory.md frontmatter</span>
+            <button class="copy-btn" data-target="skills-frontmatter" aria-label="Copy to clipboard">Copy</button>
           </div>
-          <pre id="a2a-agent-card"><code class="language-json">{
-  "name": "Precision Works Manufacturing Agent",
-  "description": "Aerospace-grade CNC machining — RFQ intake, quoting, and capability queries.",
-  "supportedInterfaces": [{
-    "url": "https://precisionworks.example.com/a2a/v1",
-    "protocolBinding": "HTTP+JSON",
-    "protocolVersion": "1.0"
-  }],
-  "version": "1.0.0",
-  "capabilities": {
-    "streaming": false,
-    "pushNotifications": false,
-    "extensions": [{
-      "uri": "https://factoryschema.org/a2a-extension/v1",
-      "description": "Manufacturing facility profile (factory.md)",
-      "required": false
-    }]
-  },
-  "defaultInputModes": ["application/json"],
-  "defaultOutputModes": ["application/json"],
-  "skills": [
-    {
-      "id": "rfq-intake",
-      "name": "RFQ Intake",
-      "description": "Submit a Request for Quote with part drawings, quantities, and requirements.",
-      "tags": ["rfq", "quoting", "manufacturing"]
-    },
-    {
-      "id": "capability-query",
-      "name": "Capability Query",
-      "description": "Query factory capabilities, certifications, and lead times.",
-      "tags": ["query", "capabilities"]
-    }
-  ],
-  "metadata": {
-    "factoryProfile": "https://precisionworks.example.com/.well-known/factory.md",
-    "vertical": "machining",
-    "location": "Shenzhen, CN"
-  }
-}</code></pre>
+          <pre id="skills-frontmatter"><code class="language-yaml">skills:
+  - id: order-status
+    endpoint: https://acme.com/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://skills.argotrade.io/order-status</code></pre>
         </div>
       </div>
 
       <div class="spec-block">
-        <h3>What Goes Where</h3>
+        <h3>Field Reference</h3>
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Agent Card (lean)</th><th>factory.md (rich)</th></tr>
+              <tr><th>Field</th><th>Required</th><th>Description</th></tr>
             </thead>
             <tbody>
-              <tr><td>Name, description, provider</td><td>Full legal name, founding year, employees</td></tr>
-              <tr><td>Supported interfaces &amp; protocol</td><td>Detailed capabilities, materials, equipment</td></tr>
-              <tr><td>Skills at summary level</td><td>Certifications with expiry &amp; issuing bodies</td></tr>
-              <tr><td>Extension declaration &amp; profile URI</td><td>Constraints (MOQ, tolerances, lead times)</td></tr>
-              <tr><td>Routing hints (vertical, location)</td><td>Quality, engineering, shipping, payment, compliance</td></tr>
+              <tr><td><code>id</code></td><td>Yes</td><td>Stable kebab-case identifier, e.g. <code>order-status</code></td></tr>
+              <tr><td><code>endpoint</code></td><td>Yes</td><td>HTTPS URI agents can call for this skill</td></tr>
+              <tr><td><code>auth</code></td><td>Yes</td><td>Authentication mode such as <code>open</code>, <code>api_key</code>, <code>oauth2</code>, <code>mtls</code>, or <code>nda</code></td></tr>
+              <tr><td><code>description</code></td><td>No</td><td>Short human-readable summary of what the skill does</td></tr>
+              <tr><td><code>docs</code></td><td>No</td><td>Documentation URL for inputs, outputs, examples, rate limits, and errors</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="spec-block">
-        <h3>Semantic Mapping</h3>
-        <p>When a consumer fetches factory.md via the <code>metadata.factoryProfile</code> URI, these fields map to A2A concepts:</p>
+        <h3>Common Skills</h3>
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>factory.md Content</th><th>A2A Concept</th><th>Mapping</th></tr>
+              <tr><th>Skill</th><th>Typical Use</th><th>Common Auth</th></tr>
             </thead>
             <tbody>
-              <tr><td>Frontmatter: <code>name</code>, <code>location</code></td><td>Agent Card identity</td><td>Direct mapping to agent identity fields</td></tr>
-              <tr><td>Frontmatter: <code>capabilities</code></td><td><code>AgentSkill</code></td><td>Each process MAY become a skill, or summarized into one</td></tr>
-              <tr><td>Body: Engineering file formats</td><td>Input artifact MIME types</td><td>STEP, PDF, DXF as accepted input formats</td></tr>
-              <tr><td>Body: RFQ required fields</td><td>Skill input requirements</td><td>Required fields define RFQ skill input schema</td></tr>
-              <tr><td>Body: RFQ required files</td><td>Required input artifacts</td><td>Required file types as input artifact MIME types</td></tr>
-              <tr><td>Body: NDA requirements</td><td>Pre-authentication step</td><td>NDA signing step before accepting file artifacts</td></tr>
-              <tr><td>Frontmatter: <code>certifications</code></td><td>Trust signals</td><td>Used to evaluate agent trustworthiness</td></tr>
-              <tr><td>Body: Constraints</td><td>Feasibility filtering</td><td>Check MOQ, dimensions, tolerances before submitting</td></tr>
+              <tr><td><code>submit-rfq</code></td><td>Submit drawings, quantities, material, and delivery requirements</td><td><code>nda</code> or <code>oauth2</code></td></tr>
+              <tr><td><code>order-status</code></td><td>Look up production state and expected ship date for a PO</td><td><code>oauth2</code></td></tr>
+              <tr><td><code>quote-status</code></td><td>Check whether a quote is submitted, in review, blocked, or completed</td><td><code>open</code> or <code>oauth2</code></td></tr>
+              <tr><td><code>certificate-retrieval</code></td><td>Fetch current compliance certificates and expiry dates</td><td><code>open</code></td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="spec-block">
-        <h3>Industrial Task Extension</h3>
-        <p>Standard A2A Task conventions for RFQ workflows:</p>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>A2A Task State</th><th>Manufacturing Meaning</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><code>submitted</code></td><td>RFQ Received</td></tr>
-              <tr><td><code>working</code></td><td>Quoting in Progress</td></tr>
-              <tr><td><code>input-required</code></td><td>Clarification Needed</td></tr>
-              <tr><td><code>completed</code></td><td>Quote Issued</td></tr>
-              <tr><td><code>failed</code></td><td>Unable to Quote</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p><strong>Input artifacts:</strong> STEP (<code>model/step</code>), PDF (<code>application/pdf</code>), DXF (<code>image/vnd.dxf</code>)<br>
-        <strong>Output artifacts:</strong> Quote PDF (<code>application/pdf</code>), structured JSON (<code>application/json</code>)</p>
+        <h3>Body Detail</h3>
+        <p>The frontmatter is the discovery layer. Use the Markdown body or the skill <code>docs</code> URL for schemas, MIME types, examples, async behavior, webhook callbacks, and rate limits.</p>
       </div>
     </div>
   </section>
@@ -693,7 +674,7 @@ solar-powered knitting unit.
       <div class="adopt-steps">
         <div class="adopt-step">
           <h3>1. Create your file</h3>
-          <p>Start with the minimal example and add frontmatter fields and Markdown body sections. Validate frontmatter against the <a href="https://github.com/factory-md/factory-md/blob/main/schema/v0.3/factory.schema.json" target="_blank" rel="noopener">JSON Schema</a>.</p>
+          <p>Start with the minimal example and add frontmatter fields and Markdown body sections. Validate frontmatter against the <a href="https://github.com/factory-md/factory-md/blob/main/schema/v0.4/factory.schema.json" target="_blank" rel="noopener">JSON Schema</a>.</p>
         </div>
         <div class="adopt-step">
           <h3>2. Configure your web server</h3>
@@ -752,15 +733,15 @@ RewriteRule ^\.well-known/factory\.md$ /factory.md [L]
       </div>
 
       <div class="adopt-step">
-        <h3>4. Enable A2A Discovery (Optional)</h3>
-        <p>To make your factory discoverable by AI agents via the A2A protocol:</p>
+        <h3>4. Add callable skills (Optional)</h3>
+        <p>To expose machine-callable workflows to AI agents and procurement platforms:</p>
         <ol>
-          <li>Create a lean <code>agent-card.json</code> with your agent's skills and a <code>metadata.factoryProfile</code> URI pointing to your factory.md</li>
-          <li>Declare the <code>factoryschema.org/a2a-extension/v1</code> extension in the Agent Card's capabilities</li>
-          <li>Host it at <code>/.well-known/agent-card.json</code> on your domain</li>
-          <li>Reference the A2A endpoint in your factory.md's RFQ Requirements section</li>
+          <li>Add a <code>skills</code> array to your factory.md frontmatter</li>
+          <li>Give each skill a stable <code>id</code>, callable <code>endpoint</code>, and <code>auth</code> mode</li>
+          <li>Add a short <code>description</code> and a <code>docs</code> URL for input/output details</li>
+          <li>Use the Markdown body for examples, caveats, MIME types, rate limits, and escalation paths</li>
         </ol>
-        <p>The Agent Card stays lean — just name, skills, and a link to your factory.md. All the rich manufacturing data stays in one place. See the <a href="#a2a">A2A Interoperability</a> section for the full example.</p>
+        <p>See the <a href="#skills">Callable Skills</a> section for the recommended frontmatter shape.</p>
       </div>
     </div>
   </section>

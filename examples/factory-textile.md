@@ -1,5 +1,5 @@
 ---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Sunrise Textiles Pvt. Ltd."
 location:
   city: Tirupur
@@ -29,7 +29,22 @@ email: orders@sunrisetextiles.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: rfq-intake
+    endpoint: https://sunrise.argo.trade/skills/rfq-intake
+    auth: nda
+    description: Submit garment tech packs, artwork, quantities, and delivery requirements for quoting.
+    docs: https://sunrise.argo.trade/docs/rfq-intake
+  - id: sample-status
+    endpoint: https://sunrise.argo.trade/skills/sample-status
+    auth: oauth2
+    description: Track sample room status, blocker notes, and expected completion date.
+    docs: https://sunrise.argo.trade/docs/sample-status
+  - id: certificate-retrieval
+    endpoint: https://sunrise.argo.trade/skills/certificate-retrieval
+    auth: open
+    description: Retrieve current GOTS, GRS, and OEKO-TEX certificates.
+    docs: https://sunrise.argo.trade/docs/certificate-retrieval
 ---
 
 # Sunrise Textiles Pvt. Ltd.
@@ -134,11 +149,9 @@ AQL 2.5 final inspection, inline QC at cutting and sewing, pre-shipment lab test
 
 ## Agent Access
 
-- **Agent Card:** https://sunrisetextiles.example.com/.well-known/agent-card.json
 - **MCP server:** https://sunrise.argo.trade/.well-known/mcp
 - **Skills:** RFQ intake, capability query, sample status, GOTS certificate retrieval
 - **Auth:** open for capability queries; NDA acceptance required before uploading tech packs or artwork
-- A2A extension URI: `https://factoryschema.org/a2a-extension/v1`
 
 ## Contacts
 

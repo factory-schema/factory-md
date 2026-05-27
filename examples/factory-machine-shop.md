@@ -1,5 +1,5 @@
 ---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Precision Works Manufacturing Co."
 location:
   city: Shenzhen
@@ -29,7 +29,17 @@ email: sales@precisionworks.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: submit-rfq
+    endpoint: https://precisionworks.argo.trade/agent/rfq
+    auth: nda
+    description: Submit a Request for Quote for CNC-machined parts.
+    docs: https://precisionworks.argo.trade/docs/submit-rfq
+  - id: quote-status
+    endpoint: https://precisionworks.argo.trade/agent/quote-status
+    auth: open
+    description: Look up the status and quoted price of a previously submitted RFQ.
+    docs: https://precisionworks.argo.trade/docs/quote-status
 ---
 
 # Precision Works Manufacturing Co.
@@ -136,11 +146,30 @@ High-precision CNC machining facility in Shenzhen specializing in aerospace and 
 
 ## Agent Access
 
-- **Agent Card:** https://precisionworks.example.com/.well-known/agent-card.json
 - **MCP server:** https://precisionworks.argo.trade/.well-known/mcp
-- **Skills:** RFQ intake, capability query, quote status, FAI document retrieval
-- **Auth:** NDA acceptance required before any task that uploads CAD or drawings
-- A2A extension URI: `https://factoryschema.org/a2a-extension/v1`
+- **Auth:** open for capability queries and quote-status lookups; NDA acceptance required before any task that uploads CAD or drawings.
+
+### Submit RFQ
+
+Submit a Request for Quote for CNC-machined parts. The skill validates that required files and fields are present, requires NDA acceptance, then routes the RFQ to engineering for quoting. Returns a `quote_id` the agent can use with the `Quote Status` skill below.
+
+- **Skill ID:** `submit-rfq`
+- **Input:** `model/step` (3D CAD, required) + `application/pdf` (drawing with GD&T, required) + JSON metadata: `{ "quantity": int, "material": str, "delivery_date": "YYYY-MM-DD" }`
+- **Output:** `application/json` — `{ "quote_id": str, "status": "submitted" | "input-required", "missing": [str] }`
+- **Endpoint:** `POST https://precisionworks.argo.trade/agent/rfq`
+- **Auth:** NDA acceptance required before file upload. ITAR-controlled parts routed to sales@precisionworks.example.com instead.
+- **Example:** "Quote 50 pieces of XYZ.step in Al 6061-T6 with GD&T per the attached PDF, delivery in 5 weeks"
+
+### Quote Status
+
+Look up the status and quoted price of a previously submitted RFQ.
+
+- **Skill ID:** `quote-status`
+- **Input:** `application/json` — `{ "quote_id": str }`
+- **Output:** `application/json` — `{ "status": "submitted" | "working" | "input-required" | "completed" | "failed", "lead_time_days": int?, "unit_price_usd": number?, "moq": int?, "notes": str? }`
+- **Endpoint:** `GET https://precisionworks.argo.trade/agent/quote/{quote_id}`
+- **Auth:** open to the submitting party (quote_id acts as a bearer token).
+- **Example:** "What's the status of quote Q-2026-04812?"
 
 ## Contacts
 

@@ -1,4 +1,4 @@
-# Factory.md Specification v0.3
+# Factory.md Specification v0.4
 
 ## Abstract
 
@@ -8,7 +8,7 @@ The format is designed to be hosted at a well-known URI, enabling automated disc
 
 ## Status
 
-This is version **0.3** of the Factory.md specification, published by Factory Schema. Factory.md is currently in **beta**: the format is implementable and stable enough for early adoption, but minor version bumps in the `0.x` series MAY introduce breaking changes as we iterate toward 1.0. See [CHANGELOG.md](CHANGELOG.md) for release history.
+This is version **0.4** of the Factory.md specification, published by Factory Schema. Factory.md is currently in **beta**: the format is implementable and stable enough for early adoption, but minor version bumps in the `0.x` series MAY introduce breaking changes as we iterate toward 1.0. See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Table of Contents
 
@@ -21,7 +21,6 @@ This is version **0.3** of the Factory.md specification, published by Factory Sc
 - [7. Versioning Policy](#7-versioning-policy)
 - [8. Security Considerations](#8-security-considerations)
 - [9. Examples](#9-examples)
-- [10. A2A Interoperability](#10-a2a-interoperability)
 - [Appendix A. Common Values](#appendix-a-common-values-non-normative)
 
 ---
@@ -71,7 +70,7 @@ A factory.md file consists of two parts:
 1. **YAML frontmatter** — a structured block delimited by `---` at the start of the file. The opening `---` MUST be the first line. The closing `---` MUST appear on its own line. The frontmatter is validated against the JSON Schema (Draft 2020-12) located at:
 
    ```
-   https://factoryschema.org/v0.3/factory.schema.json
+   https://factoryschema.org/v0.4/factory.schema.json
    ```
 
 2. **Markdown body** — free-form content following the frontmatter. The body uses standard Markdown (CommonMark) and SHOULD use the recommended sections described in [Section 5](#5-markdown-body). The body is NOT validated by the schema.
@@ -82,7 +81,7 @@ A valid factory.md file MUST include the following frontmatter fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `schema` | `string` | Schema URI for validation (MUST equal the v0.3 URI) |
+| `schema` | `string` | Schema URI for validation (MUST equal the v0.4 URI) |
 | `name` | `string` | Trade name of the factory (MUST be non-empty) |
 | `location` | `string` or `object` | Factory location |
 | `vertical` | `string` | Primary industry vertical (MUST be non-empty) |
@@ -100,18 +99,18 @@ The following frontmatter fields are RECOMMENDED:
 | `updated_at` | `string` (date) | Date the profile was last updated (YYYY-MM-DD) |
 | `has_inventory` | `boolean` | True if the factory exposes inventory data |
 | `has_rfq` | `boolean` | True if the factory accepts RFQ submissions |
-| `has_agent_capabilities` | `boolean` | True if the factory publishes an A2A Agent Card or equivalent agent-callable endpoint |
+| `skills` | `object[]` | Agent-callable skill endpoints exposed by the factory |
 
 ### 3.3 Design Rationale
 
-The frontmatter is intentionally minimal. It contains only the fields needed for programmatic discovery, filtering, and indexing. All rich, descriptive content — equipment details, quality processes, tolerances, compliance narratives, shipping logistics — belongs in the Markdown body where it is readable by both humans and AI agents without structured parsing.
+The frontmatter contains the fields needed for programmatic discovery, filtering, indexing, and skill invocation. Rich, descriptive content — equipment details, quality processes, tolerances, compliance narratives, shipping logistics, and detailed skill behavior — belongs in the Markdown body where it is readable by both humans and AI agents without structured parsing.
 
 ## 4. Frontmatter Fields
 
 ### 4.1 `schema` (REQUIRED)
 
 - **Type**: `string` (const)
-- **Value**: MUST be `"https://factoryschema.org/v0.3/factory.schema.json"`.
+- **Value**: MUST be `"https://factoryschema.org/v0.4/factory.schema.json"`.
 - **Description**: Identifies the document as a factory.md file and pins it to this schema version.
 
 ### 4.2 `name` (REQUIRED)
@@ -181,10 +180,33 @@ This field is a flat list of certification names for indexing and search. Additi
 - **Type**: `boolean`
 - **Description**: Indicates whether the factory accepts RFQ (Request for Quote) submissions. When `true`, publishers SHOULD include an RFQ Requirements section in the Markdown body with the submission endpoint and any required fields/files. RECOMMENDED.
 
-### 4.12 `has_agent_capabilities`
+### 4.12 `skills`
 
-- **Type**: `boolean`
-- **Description**: Indicates whether the factory publishes an A2A Agent Card or equivalent agent-callable endpoint. When `true`, publishers SHOULD link to the Agent Card from the Markdown body and follow the A2A guidance in [Section 10](#10-a2a-interoperability). RECOMMENDED.
+- **Type**: `array` of `object`
+- **Description**: Agent-callable skill endpoints exposed by the factory. RECOMMENDED when the factory offers API, MCP, webhook, or other machine-callable workflows.
+
+Each `skills` item MUST include:
+
+| Sub-field | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | Stable kebab-case identifier, e.g. `order-status` |
+| `endpoint` | `string` (URI) | Yes | HTTPS endpoint agents can call for this skill |
+| `auth` | `string` | Yes | Authentication method, e.g. `open`, `api_key`, `oauth2`, `mtls`, `nda` |
+| `description` | `string` | No | Short human-readable description of what the skill does |
+| `docs` | `string` (URI) | No | Documentation URL for inputs, outputs, examples, rate limits, and error handling |
+
+Recommended form:
+
+```yaml
+skills:
+  - id: order-status
+    endpoint: https://acme.com/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://skills.argotrade.io/order-status
+```
+
+Detailed input/output schemas, examples, rate limits, and operational caveats SHOULD be documented at the `docs` URL or in the Markdown body's [Agent Access](#511-agent-access-recommended-if-skills-is-present) section.
 
 ### 4.13 Additional Properties
 
@@ -278,27 +300,26 @@ Typical lead times broken down by order type (sample, prototype, production), wi
 - Packaging capabilities
 - Payment terms, methods, and accepted currencies
 
-### 5.11 Agent Access (RECOMMENDED if `has_agent_capabilities` is `true`)
+### 5.11 Agent Access (RECOMMENDED if `skills` is present)
 
-When `has_agent_capabilities: true` in the frontmatter, publishers SHOULD describe how agents can interact with the factory. The Agent Access section is the **authoritative source** for the factory's agent skills — an A2A Agent Card, if published, is one optional surface for the same skills, not a replacement.
+When `skills` is present in the frontmatter, publishers SHOULD describe how agents can interact with the factory. The frontmatter `skills` array is the machine-readable index of callable skills; this body section provides richer operational detail.
 
 A typical Agent Access section contains:
 
-- Public endpoints (MCP server URI, A2A Agent Card URI if available)
-- A2A extension URI: `https://factoryschema.org/a2a-extension/v1`
+- Public endpoints (MCP server URI, REST base URL, webhook URL, or other service URI)
 - Authentication or NDA preconditions
 - One H3 sub-section per skill the factory exposes
 
 #### Skill sub-sections
 
-Each agent skill SHOULD be a level-3 heading (`### Skill Name`) followed by a one-paragraph description and a bullet list of structured fields. The following fields are RECOMMENDED:
+Each frontmatter skill MAY have a matching level-3 heading (`### Skill Name`) followed by a one-paragraph description and a bullet list of structured fields. The following fields are RECOMMENDED:
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `Skill ID` | Yes | Stable, kebab-case identifier (e.g. `submit-rfq`). Used by agents to invoke the skill. |
 | `Input` | Yes | What the skill accepts — free-form, but MIME types are RECOMMENDED for file artifacts (e.g. `model/step`, `application/pdf`). |
 | `Output` | Yes | What the skill returns. |
-| `Endpoint` | Recommended | HTTP method + URI, or a reference to the MCP/A2A endpoint above if the skill is invoked through it. |
+| `Endpoint` | Recommended | HTTP method + URI, or a reference to the MCP or service endpoint above if the skill is invoked through it. |
 | `Auth` | Recommended | Authentication or NDA requirements. `open` means no auth. |
 | `Example` | Optional | A short natural-language prompt or sample request that illustrates the skill in use. |
 
@@ -322,8 +343,6 @@ numbers are authoritative, not estimates.
 - **Example:** "Do you have at least 100 sheets of 3 mm 6061-T6 aluminum in stock today?"
 ```
 
-See [Section 10](#10-a2a-interoperability) for the A2A interoperability model and how these skills map to A2A `AgentSkill` objects when an Agent Card is published.
-
 ### 5.12 Contacts (OPTIONAL)
 
 Human contact points beyond the top-level `email` and `website` frontmatter:
@@ -346,7 +365,7 @@ Human contact points beyond the top-level `email` and `website` frontmatter:
 
 A factory.md file MUST be served with the media type `text/markdown; charset=utf-8`, per [RFC 7763](https://www.rfc-editor.org/rfc/rfc7763).
 
-Consumers SHOULD identify factory.md files by the presence of YAML frontmatter containing a `name` field and a `location` field, or by the `schema` field with the value `"https://factoryschema.org/v0.3/factory.schema.json"`.
+Consumers SHOULD identify factory.md files by the presence of YAML frontmatter containing a `name` field and a `location` field, or by the `schema` field with the value `"https://factoryschema.org/v0.4/factory.schema.json"`.
 
 ## 7. Versioning Policy
 
@@ -397,7 +416,7 @@ Consumers MUST use a safe YAML parser that does not execute arbitrary code. Publ
 
 ```markdown
 ---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Midwest Sheet Metal Supply"
 location: "Chicago, IL, US"
 vertical: sheet-metal
@@ -412,7 +431,7 @@ Sheet metal supply and cut-to-size service for fabricators across the Midwest.
 
 ```yaml
 ---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "Midwest Sheet Metal Supply"
 location: "Chicago, IL, US"
 vertical: sheet-metal
@@ -428,7 +447,12 @@ email: sales@midwestsheet.example.com
 updated_at: "2026-05-12"
 has_inventory: true
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: order-status
+    endpoint: https://acme.com/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://skills.argotrade.io/order-status
 ---
 ```
 
@@ -439,123 +463,6 @@ See the [examples/](examples/) directory for complete, real-world profiles:
 - [factory-machine-shop.md](examples/factory-machine-shop.md) — CNC machine shop (Shenzhen, China)
 - [factory-pcb-fab.md](examples/factory-pcb-fab.md) — PCB fabrication facility (Taoyuan, Taiwan)
 - [factory-textile.md](examples/factory-textile.md) — Textile/garment manufacturer (Tirupur, India)
-- [agent-card.json](examples/agent-card.json) — A2A Agent Card corresponding to the machine shop example
-
----
-
-## 10. A2A Interoperability
-
-### 10.1 Overview
-
-The [A2A (Agent-to-Agent) protocol](https://a2a-protocol.org) defines a standard for AI agents to discover each other's capabilities and exchange tasks. factory.md integrates with A2A as a **protocol extension**, allowing manufacturing facilities to be discovered through the A2A ecosystem while keeping factory.md as the authoritative source for rich manufacturing data.
-
-The A2A Agent Card at `/.well-known/agent-card.json` serves as the **interaction entry point** — a lean file describing how to communicate with the factory's agent. The factory.md file at `/.well-known/factory.md` remains the **data layer** — the complete manufacturing profile.
-
-A2A interoperability is OPTIONAL. Factories MAY adopt it incrementally: first publish a factory.md (static profile), then add an A2A Agent Card (active agent endpoint) when ready.
-
-### 10.2 Extension Registration
-
-factory.md is registered as an A2A extension. Agent Cards that link to a factory profile SHOULD declare the extension in `capabilities.extensions`:
-
-```json
-{
-  "capabilities": {
-    "extensions": [
-      {
-        "uri": "https://factoryschema.org/a2a-extension/v1",
-        "description": "Manufacturing facility profile (factory.md)",
-        "required": false
-      }
-    ]
-  }
-}
-```
-
-Setting `required: false` ensures generic A2A clients can interact with the agent without understanding factory.md. Manufacturing-aware clients MAY fetch and parse the linked profile for richer context.
-
-### 10.3 Discovery
-
-The Agent Card and factory.md reference each other through bidirectional links:
-
-**Agent Card → factory.md**: The Agent Card SHOULD include a `metadata.factoryProfile` field containing the URI of the factory.md file:
-
-```json
-{
-  "metadata": {
-    "factoryProfile": "https://factory.example.com/.well-known/factory.md",
-    "vertical": "machining",
-    "location": "Shenzhen, CN"
-  }
-}
-```
-
-The `vertical` and `location` fields are RECOMMENDED as inline hints, allowing A2A clients to filter and route without fetching the full profile.
-
-**factory.md → Agent Card**: The factory.md body (typically in the RFQ Requirements section) SHOULD include the A2A endpoint URI.
-
-### 10.4 Lean Agent Card Design
-
-The Agent Card SHOULD remain lean — limited to what an A2A client needs to decide whether and how to interact with the agent. Rich manufacturing data (certifications, tolerances, equipment, constraints, quality processes) stays in factory.md.
-
-**What belongs in the Agent Card**:
-- Agent name, description, and provider
-- Supported interfaces (URL, protocol binding, version)
-- Skills at a summary level (id, name, description, tags)
-- Extension declaration and factory profile URI
-- Lightweight routing hints (vertical, location)
-
-**What stays in factory.md**:
-- Detailed capabilities (processes, materials, finishes, equipment)
-- Certifications with expiry dates and issuing bodies
-- Production constraints (MOQ, lead times, tolerances, capacity)
-- Quality processes and inspection equipment
-- Engineering support (file formats, DFM, prototyping)
-- RFQ intake requirements
-- Shipping, payment, and compliance details
-
-### 10.5 Semantic Mapping
-
-When a consumer fetches factory.md via the `metadata.factoryProfile` URI, the following mapping relates factory.md content to A2A concepts:
-
-| factory.md Content | A2A Concept | Mapping |
-|---|---|---|
-| Frontmatter: `name`, `location` | Agent Card identity | Map directly to the Agent Card's `name` and `metadata.location`. |
-| Frontmatter: `capabilities` | `AgentSkill` | Each process MAY be represented as a skill, or summarized into a single skill. |
-| Body: Engineering file formats | Input artifact MIME types | Accepted file formats inform which MIME types the agent can receive as task input artifacts. |
-| Body: RFQ required fields | Skill input requirements | Required RFQ fields define what the RFQ intake skill expects as structured input. |
-| Body: RFQ required files | Required input artifacts | Required file types map to MIME types the RFQ intake skill requires as input artifacts. |
-| Body: NDA requirements | Pre-authentication step | If NDA is required, the A2A task flow SHOULD include an NDA signing step before accepting file artifacts. |
-| Frontmatter: `certifications` | Trust signals | Consumers MAY use certifications to evaluate agent trustworthiness before initiating a task. |
-| Body: Constraints | Feasibility filtering | Consumers SHOULD check constraints (MOQ, max dimensions, tolerances) before submitting a task. |
-
-### 10.6 Industrial Task Extension
-
-When using A2A tasks for RFQ workflows, the following conventions are RECOMMENDED:
-
-**Input Artifacts**: STEP files (`model/step`), PDF drawings (`application/pdf`), DXF files (`image/vnd.dxf`).
-
-**Status Mapping**:
-
-| A2A Task State | Manufacturing Meaning |
-|---|---|
-| `submitted` | RFQ Received |
-| `working` | Quoting in Progress |
-| `input-required` | Clarification Needed (e.g. missing tolerances, ambiguous drawing) |
-| `completed` | Quote Issued |
-| `failed` | Unable to Quote (e.g. capability mismatch, export restriction) |
-
-**Output Artifacts**: Quote PDF (`application/pdf`), structured quote JSON (`application/json`).
-
-### 10.7 Trust & Verification
-
-Agent Cards MAY be signed using JSON Web Signature (JWS) to establish authenticity. This is OPTIONAL and not required for basic interoperability.
-
-Publishers who sign their Agent Cards SHOULD:
-
-- Use a key associated with the factory's domain (e.g. via a `/.well-known/jwks.json` endpoint).
-- Include the `factoryProfile` URL in the signed payload so consumers can verify the binding between the Agent Card and the factory profile.
-
-Consumers SHOULD NOT treat Agent Card claims as verified without additional validation, consistent with the security guidance in [Section 8.3](#83-data-accuracy).
 
 ---
 

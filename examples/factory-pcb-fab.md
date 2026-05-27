@@ -1,5 +1,5 @@
 ---
-schema: "https://factoryschema.org/v0.3/factory.schema.json"
+schema: "https://factoryschema.org/v0.4/factory.schema.json"
 name: "TaiPCB Technology Co., Ltd."
 location:
   city: Taoyuan
@@ -28,7 +28,22 @@ email: rfq@taipcb.example.com
 updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
-has_agent_capabilities: true
+skills:
+  - id: rfq-intake
+    endpoint: https://taipcb.argo.trade/skills/rfq-intake
+    auth: nda
+    description: Submit Gerbers, drill files, quantities, and board requirements for quoting.
+    docs: https://taipcb.argo.trade/docs/rfq-intake
+  - id: auto-quote
+    endpoint: https://taipcb.argo.trade/skills/auto-quote
+    auth: open
+    description: Generate an automated quote for standard FR-4 PCB orders.
+    docs: https://taipcb.argo.trade/docs/auto-quote
+  - id: order-status
+    endpoint: https://taipcb.argo.trade/skills/order-status
+    auth: oauth2
+    description: Look up current state and expected ship date for a PO.
+    docs: https://taipcb.argo.trade/docs/order-status
 ---
 
 # TaiPCB Technology Co., Ltd.
@@ -137,11 +152,9 @@ AOI after each imaging step, 100% electrical test, impedance coupon verification
 
 ## Agent Access
 
-- **Agent Card:** https://taipcb.example.com/.well-known/agent-card.json
 - **MCP server:** https://taipcb.argo.trade/.well-known/mcp
 - **Skills:** RFQ intake, auto-quote (standard FR-4), capability query, order status
 - **Auth:** open for capability queries and auto-quote; NDA required before uploading customer Gerbers
-- A2A extension URI: `https://factoryschema.org/a2a-extension/v1`
 
 ## Contacts
 
