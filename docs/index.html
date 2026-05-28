@@ -310,11 +310,11 @@ updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
 skills:
-  - id: submit-rfq
+  - id: rfq-submit
     endpoint: https://precisionworks.argo.trade/agent/rfq
     auth: nda
     description: Submit a Request for Quote for CNC-machined parts.
-    docs: https://precisionworks.argo.trade/docs/submit-rfq
+    docs: https://precisionworks.argo.trade/docs/rfq-submit
   - id: quote-status
     endpoint: https://precisionworks.argo.trade/agent/quote-status
     auth: open
@@ -633,7 +633,8 @@ solar-powered knitting unit.
             <tbody>
               <tr><td><code>id</code></td><td>Yes</td><td>Stable kebab-case identifier, e.g. <code>order-status</code></td></tr>
               <tr><td><code>endpoint</code></td><td>Yes</td><td>HTTPS URI agents can call for this skill</td></tr>
-              <tr><td><code>auth</code></td><td>Yes</td><td>Authentication mode such as <code>open</code>, <code>api_key</code>, <code>oauth2</code>, <code>mtls</code>, or <code>nda</code></td></tr>
+              <tr><td><code>auth</code></td><td>Yes</td><td>Authentication mode — one of <code>open</code>, <code>api-key</code>, <code>oauth2</code>, <code>mtls</code>, or <code>nda</code></td></tr>
+              <tr><td><code>version</code></td><td>No</td><td>Skill version (integer ≥ 1). Defaults to <code>1</code>; omit unless greater</td></tr>
               <tr><td><code>description</code></td><td>No</td><td>Short human-readable summary of what the skill does</td></tr>
               <tr><td><code>docs</code></td><td>No</td><td>Documentation URL for inputs, outputs, examples, rate limits, and errors</td></tr>
             </tbody>
@@ -649,10 +650,12 @@ solar-powered knitting unit.
               <tr><th>Skill</th><th>Typical Use</th><th>Common Auth</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>submit-rfq</code></td><td>Submit drawings, quantities, material, and delivery requirements</td><td><code>nda</code> or <code>oauth2</code></td></tr>
+              <tr><td><code>rfq-submit</code></td><td>Submit drawings, quantities, material, and delivery requirements</td><td><code>nda</code> or <code>oauth2</code></td></tr>
+              <tr><td><code>rfq-schema</code></td><td>Read the factory's RFQ requirements (required files, fields, and formats)</td><td><code>open</code></td></tr>
               <tr><td><code>order-status</code></td><td>Look up production state and expected ship date for a PO</td><td><code>oauth2</code></td></tr>
               <tr><td><code>quote-status</code></td><td>Check whether a quote is submitted, in review, blocked, or completed</td><td><code>open</code> or <code>oauth2</code></td></tr>
               <tr><td><code>certificate-retrieval</code></td><td>Fetch current compliance certificates and expiry dates</td><td><code>open</code></td></tr>
+              <tr><td><code>capability-query</code></td><td>Ask whether the factory can make a given part or process</td><td><code>open</code></td></tr>
             </tbody>
           </table>
         </div>

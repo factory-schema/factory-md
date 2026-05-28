@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `skills` frontmatter array for agent-callable factory workflows.
+- `skills` frontmatter array for agent-callable factory workflows. Each entry requires `id`, `endpoint`, and `auth`; `version`, `description`, and `docs` are optional.
+- Optional `version` integer (≥ 1, defaults to `1`) on skill entries.
 - v0.4 JSON Schema at `schema/v0.4/factory.schema.json` (Draft 2020-12, validates frontmatter only).
 
 ### Changed
 
 - Skill discovery now lives in frontmatter instead of being inferred from a body section.
+- `auth` is a scalar string constrained to `open`, `api-key`, `oauth2`, `mtls`, or `nda` (kebab-case `api-key`, not `api_key`).
+- Common skill ids are noun-first so related skills namespace together (`rfq-submit`, `rfq-schema`, `order-status`, `quote-status`, `certificate-retrieval`, `capability-query`).
 - Example profiles now declare callable skills directly in YAML frontmatter.
 
 ### Removed

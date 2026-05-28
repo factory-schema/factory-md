@@ -30,11 +30,11 @@ updated_at: "2026-05-12"
 has_inventory: false
 has_rfq: true
 skills:
-  - id: submit-rfq
+  - id: rfq-submit
     endpoint: https://precisionworks.argo.trade/agent/rfq
     auth: nda
     description: Submit a Request for Quote for CNC-machined parts.
-    docs: https://precisionworks.argo.trade/docs/submit-rfq
+    docs: https://precisionworks.argo.trade/docs/rfq-submit
   - id: quote-status
     endpoint: https://precisionworks.argo.trade/agent/quote-status
     auth: open
@@ -153,7 +153,7 @@ High-precision CNC machining facility in Shenzhen specializing in aerospace and 
 
 Submit a Request for Quote for CNC-machined parts. The skill validates that required files and fields are present, requires NDA acceptance, then routes the RFQ to engineering for quoting. Returns a `quote_id` the agent can use with the `Quote Status` skill below.
 
-- **Skill ID:** `submit-rfq`
+- **Skill ID:** `rfq-submit`
 - **Input:** `model/step` (3D CAD, required) + `application/pdf` (drawing with GD&T, required) + JSON metadata: `{ "quantity": int, "material": str, "delivery_date": "YYYY-MM-DD" }`
 - **Output:** `application/json` — `{ "quote_id": str, "status": "submitted" | "input-required", "missing": [str] }`
 - **Endpoint:** `POST https://precisionworks.argo.trade/agent/rfq`

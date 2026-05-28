@@ -191,7 +191,8 @@ Each `skills` item MUST include:
 |-----------|------|----------|-------------|
 | `id` | `string` | Yes | Stable kebab-case identifier, e.g. `order-status` |
 | `endpoint` | `string` (URI) | Yes | HTTPS endpoint agents can call for this skill |
-| `auth` | `string` | Yes | Authentication method, e.g. `open`, `api_key`, `oauth2`, `mtls`, `nda` |
+| `auth` | `string` | Yes | Authentication method — one of `open`, `api-key`, `oauth2`, `mtls`, `nda` |
+| `version` | `integer` | No | Skill version (≥ 1). Defaults to `1`; omit unless greater |
 | `description` | `string` | No | Short human-readable description of what the skill does |
 | `docs` | `string` (URI) | No | Documentation URL for inputs, outputs, examples, rate limits, and error handling |
 
@@ -316,7 +317,7 @@ Each frontmatter skill MAY have a matching level-3 heading (`### Skill Name`) fo
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `Skill ID` | Yes | Stable, kebab-case identifier (e.g. `submit-rfq`). Used by agents to invoke the skill. |
+| `Skill ID` | Yes | Stable, kebab-case identifier (e.g. `rfq-submit`). Used by agents to invoke the skill. |
 | `Input` | Yes | What the skill accepts — free-form, but MIME types are RECOMMENDED for file artifacts (e.g. `model/step`, `application/pdf`). |
 | `Output` | Yes | What the skill returns. |
 | `Endpoint` | Recommended | HTTP method + URI, or a reference to the MCP or service endpoint above if the skill is invoked through it. |
